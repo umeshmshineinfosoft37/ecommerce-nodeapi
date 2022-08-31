@@ -261,14 +261,16 @@ router.post('/:userId/wishlist', ensureAuthenticated, async function (req, res, 
     const productId= req.body.productId;
     let wishlist = [];
     const already_wishlist =  await Wishlist.findOne({user_id:userId})
-    console.log("already_wishlist===>",already_wishlist);
-    if(already_wishlist && already_wishlist.length>0 && already_wishlist?.user_id === userId){
+    console.log("already_wishlist===>", already_wishlist);
+    if(already_wishlist && already_wishlist?.user_id.toString() === userId){
       console.log("===IF===>")
       wishlist= await Wishlist.findOneAndUpdate(
         { _id: already_wishlist._id }, 
         {
-            product: [...already_wishlist.product,productId],
+          $set:{
+            product: [productId],
             user_id: userId
+          }
         }
       )
     }else{
