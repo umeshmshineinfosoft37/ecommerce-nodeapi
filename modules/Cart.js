@@ -46,7 +46,6 @@ class Cart {
   }
 
   increaseQty(id) {
-    console.log("======>>>","oldCart", this.items)
     this.items[id].qty++;
     this.items[id].price += this.items[id].item.price;
     this.items[id].price = parseFloat(this.items[id].price.toFixed(2))

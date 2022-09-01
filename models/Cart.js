@@ -64,8 +64,11 @@ module.exports.updateCartByCartId = function (cartId, newCart, callback) {
   )
 }
 
-
-
 module.exports.createCart = function (newCart, callback) {
   newCart.save(callback)
+}
+
+module.exports.removeCart = function (id, callback) {
+  let query = { _id: id }
+  Cart.deleteOne(query,callback)
 }

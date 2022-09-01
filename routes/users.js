@@ -139,7 +139,6 @@ router.post('/:userId/cart', ensureAuthenticated, function (req, res, next) {
         if (decrease) {
           oldCart.decreaseQty(product.id);
         } else if (increase) {
-          console.log("oldCart----->",oldCart)
           oldCart.increaseQty(product.id);
         } else {
           oldCart.add(product, product.id);
@@ -238,14 +237,26 @@ router.put('/:userId/cart', ensureAuthenticated, function (req, res, next) {
     })
   })
 })
+//DELETE Cart
+router.delete('/:userId/cart/:cartId', ensureAuthenticated, function (req, res, next) {
+  let cartId = req.params.cartId
+  Cart.removeCart(cartId, function (err, cart) {
+    if (err) return next(err)
+    if (cart.length < 1) {
+      let err = new TypedError('cart error', 404, 'not_found', { message: "create a cart first" })
+      return next(err)
+    }
+    res.status(200).json({ message: 'Cart Successfully deleted ' })
+  })
+})
 
 //GET wishlist
-router.get('/:userId/wishlist ', ensureAuthenticated, async function (req, res, next) {
+router.get('/:userId/wishlist', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId
   try{
-    const wishlist = await Wishlist.find({user_id : userId}).populate("product").lean().exec();
-      if(wishlist && wishlist.length>0){
-        return res.status(200).json({wishlist});
+    const wishlistData = await Wishlist.findOne({user_id:"6305bdf9d8176a12a48f693d"}).populate("product").lean().exec();
+      if(wishlistData){
+        return res.status(200).json({wishlistData});
       }else{
         let err = new TypedError('wishlist error', 404, 'not_found', { message: "create a wishlist first" })
       return next(err)
@@ -254,42 +265,69 @@ router.get('/:userId/wishlist ', ensureAuthenticated, async function (req, res, 
   if (err) return next(err)
 }
 })
+
 // POST Wishlist
 router.post('/:userId/wishlist', ensureAuthenticated, async function (req, res, next) {
   try{
     const userId= req.params.userId;
     const productId= req.body.productId;
+    let isRemove=false;
+    isRemove= req.body.isRemove;
     let wishlist = [];
     const already_wishlist =  await Wishlist.findOne({user_id:userId})
-    console.log("already_wishlist===>", already_wishlist);
-    if(already_wishlist && already_wishlist?.user_id.toString() === userId){
-      console.log("===IF===>")
-      wishlist= await Wishlist.findOneAndUpdate(
-        { _id: already_wishlist._id }, 
+    if(already_wishlist && already_wishlist?.user_id.toString() === userId ){
+      if(!isRemove){
+      wishlist = await Wishlist.findOneAndUpdate(
+        { _id: already_wishlist._id}, 
         {
-          $set:{
-            product: [productId],
-            user_id: userId
+          $addToSet:{
+            product: { $each:[productId] },
           }
         }
       )
+      }else{
+        wishlist = await Wishlist.findOneAndUpdate(
+          { _id: already_wishlist._id}, 
+          {
+            $pull:{
+              product: productId,
+            }
+          }
+      )
+      }
     }else{
-      console.log("===ELE===>")
       wishlist = await Wishlist.create({
         product : req.body.productId,
         user_id : req.params.userId,
     });
-    
     }
-    console.log("wishlist===>",wishlist);
     if(wishlist){
+      if(already_wishlist) wishlist =  await Wishlist.findOne({_id:already_wishlist?._id})
       res.status(200).json({wishlist});
     }
 
 }catch(e){
-    res.status(500).json({Message : e.message , Staus : "Failed"});
+    res.status(500).json({Message : e.message , Status : "Failed"});
+    next(e)
 }
 })
+//DELETE Wishlist
+router.delete('/:userId/wishlist/:wishlistId', ensureAuthenticated, async function (req, res, next) {
+  try {
+  let wishlistId = req.params.wishlistId;
+  const wishlistData = await Wishlist.deleteOne({_id:wishlistId});
+  if(wishlistData){
+    res.status(200).json({ message: 'Wishlist Successfully deleted ' })
+  }
+
+  } catch (error) {
+    return next(error)
+  }
+  
+  
+})
+
+
 
 
 module.exports = router;
