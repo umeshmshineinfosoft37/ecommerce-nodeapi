@@ -99,12 +99,12 @@ router.get('/:userId/cart', ensureAuthenticated, function (req, res, next) {
   let userId = req.params.userId
   Cart.getCartByUserId(userId, function (err, cart) {
     if (err) return next(err)
-    if (cart.length < 1) {
+    if (cart&&cart.length < 1) {
       let err = new TypedError('cart error', 404, 'not_found', { message: "create a cart first" })
       return next(err)
     }
     const temp=[]
-    if (cart.length > 0) {
+    if (cart&&cart.length > 0) {
     Object.keys(cart[0].items).forEach(function(key, index) {
       temp.push(cart[0].items[key])
     })
@@ -254,7 +254,7 @@ router.delete('/:userId/cart/:cartId', ensureAuthenticated, function (req, res, 
 router.get('/:userId/wishlist', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId
   try{
-    const wishlistData = await Wishlist.findOne({user_id:"6305bdf9d8176a12a48f693d"}).populate("product").lean().exec();
+    const wishlistData = await Wishlist.findOne({user_id:userId}).populate("product").lean().exec();
       if(wishlistData){
         return res.status(200).json({wishlistData});
       }else{
@@ -262,7 +262,7 @@ router.get('/:userId/wishlist', ensureAuthenticated, async function (req, res, n
       return next(err)
       }
  }catch(e){
-  if (err) return next(err)
+  if (e) return next(e)
 }
 })
 
@@ -302,8 +302,13 @@ router.post('/:userId/wishlist', ensureAuthenticated, async function (req, res, 
     });
     }
     if(wishlist){
-      if(already_wishlist) wishlist =  await Wishlist.findOne({_id:already_wishlist?._id})
+      if(already_wishlist){
+         wishlist =  await Wishlist.findOne({_id:already_wishlist?._id})
+      }
       res.status(200).json({wishlist});
+    }else{
+      let err = new TypedError('cart error', 404, 'not_found', { message: "create a Wishlist first" })
+      return next(err)
     }
 
 }catch(e){
