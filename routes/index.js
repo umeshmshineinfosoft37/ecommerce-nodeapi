@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const ensureAuthenticated = require('../modules/ensureAuthenticated')
-const Product = require('../models/Product')
+const {ensureAuthenticated, ensureAdminAuthenticated} = require('../modules/ensureAuthenticated')
+const Product = require('../models/Product');
 const Variant = require('../models/Variant')
 const Department = require('../models/Department')
 const Category = require('../models/Category')
@@ -13,7 +13,7 @@ const paypal = require('paypal-rest-sdk')
 
 
 //GET /products
-router.get('/products', function (req, res, next) {
+router.get('/products',ensureAuthenticated, function (req, res, next) {
   const { query, order } = categorizeQueryString(req.query)
   Product.getAllProducts(query, order, function (e, products) {
     if (e) {
@@ -25,6 +25,10 @@ router.get('/products', function (req, res, next) {
     res.json({ products: products })
   })
 });
+
+router.post('/products',ensureAdminAuthenticated, function (req, res, next) {
+    
+})
 
 //GET /products/:id
 router.get('/products/:id', function (req, res, next) {

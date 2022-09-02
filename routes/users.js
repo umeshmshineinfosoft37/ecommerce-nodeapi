@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken')
 const config = require('../configs/jwt-config')
-const ensureAuthenticated = require('../modules/ensureAuthenticated')
+const {ensureAuthenticated} = require('../modules/ensureAuthenticated')
 const User = require('../models/User');
 const Cart = require('../models/Cart');
 const CartClass = require('../modules/Cart')
@@ -74,7 +74,7 @@ router.post('/login', function (req, res, next) {
       if (err) return next(err)
       if (isMatch) {
         let token = jwt.sign(
-          { email: email },
+          { email: email,user_id: user.id,admin:user?.user?true:false },
           config.secret,
           { expiresIn: '7d' }
         )
