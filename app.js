@@ -11,7 +11,7 @@ const mongoConfig = require('./configs/mongo-config')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
-mongoose.connect(mongoConfig, { useNewUrlParser: true, useCreateIndex: true, },function(error){
+mongoose.connect('mongodb+srv://umeshm:Umesh@123@cluster0.trkuouf.mongodb.net/ecommerce-node?retryWrites=true&w=majority', { useNewUrlParser: true, useCreateIndex: true, },function(error){
   if(error) throw error
     console.log(`connect mongodb success`);
 });
