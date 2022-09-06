@@ -73,8 +73,9 @@ router.post('/login', function (req, res, next) {
     User.comparePassword(password, user.password, function (err, isMatch) {
       if (err) return next(err)
       if (isMatch) {
+        console.log("user===>",user)
         let token = jwt.sign(
-          { email: email,user_id: user.id,admin:user?.user?true:false },
+          { email: email,user_id: user.id,admin:user?.admin ==='true'?true:false },
           config.secret,
           { expiresIn: '7d' }
         )
@@ -137,12 +138,16 @@ router.post('/:userId/cart', ensureAuthenticated, function (req, res, next) {
       }
       if (product) {
         if (decrease) {
+          console.log("product--->IF")
           oldCart.decreaseQty(product.id);
         } else if (increase) {
+          console.log("product--->IF  ----ELSe")
           oldCart.increaseQty(product.id);
         } else {
+        console.log("product--->ELSe")
           oldCart.add(product, product.id);
         }
+        console.log("product--->",product)
         let newCart = oldCart.generateModel()
         Cart.updateCartByUserId(
           userId,

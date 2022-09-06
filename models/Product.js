@@ -30,7 +30,8 @@ var productSchema = mongoose.Schema({
   },
   date: {
     type: Number
-  }
+  },
+  createdAt: { type: Date, required: true, default: Date.now }
 });
 
 var Product = module.exports = mongoose.model('Product', productSchema);

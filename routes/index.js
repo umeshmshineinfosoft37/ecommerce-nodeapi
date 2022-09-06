@@ -9,7 +9,8 @@ const TypedError = require('../modules/ErrorHandler')
 const Cart = require('../models/Cart');
 const CartClass = require('../modules/Cart')
 const paypal_config = require('../configs/paypal-config')
-const paypal = require('paypal-rest-sdk')
+const paypal = require('paypal-rest-sdk');
+const {saveImage}  = require('../helper/FileUpload');
 
 
 //GET /products
@@ -26,8 +27,47 @@ router.get('/products',ensureAuthenticated, function (req, res, next) {
   })
 });
 
-router.post('/products',ensureAdminAuthenticated, function (req, res, next) {
+// Add Product
+router.post('/products',ensureAdminAuthenticated, async function (req, res, next) {
+  try {
+  req.checkBody('imagePath', 'Product Image is required').notEmpty();
+  req.checkBody('title', 'Product Title is required').notEmpty();
+  req.checkBody('description', 'Product Description is required').notEmpty();
+  req.checkBody('price', 'Product Price is required').notEmpty();
+  req.checkBody('color', 'Product Color is required').notEmpty();
+  req.checkBody('size', 'Product Size is required').notEmpty();
+  req.checkBody('quantity', 'Product Quantity is required').notEmpty();
+  req.checkBody('department', 'Product Department is required').notEmpty();
+  req.checkBody('category', 'Product Category is required').notEmpty();
+
+  let missingFieldErrors = req.validationErrors();
+  if (missingFieldErrors) {
+    let err = new TypedError('Product Add error', 400, 'missing_field', {
+      errors: missingFieldErrors,
+    })
+    return next(err)
+  }
+
+  const saveImg = await saveImage(req.body.imagePath);
+
+  const productData =  new Product({
+    ...req.body,
+    imagePath:saveImg,
+    date:new Date()
+  })
+  console.log("productData===>",productData)
+  productData.save((err,pdata)=>{
+    console.log("err,pdata---->",err,pdata)
+    if(pdata){
+     return res.status(200).json({ data:pdata })
+    }
+    if(err) return next(err)
     
+  });
+   
+} catch (error) {
+  next(error.message)
+}
 })
 
 //GET /products/:id

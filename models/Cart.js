@@ -13,7 +13,8 @@ CartSchema = mongoose.Schema({
   },
   userId: {
     type: String
-  }
+  },
+  created_at: { type: Date, required: true, default: Date.now }
 })
 
 var Cart = module.exports = mongoose.model('Cart', CartSchema)

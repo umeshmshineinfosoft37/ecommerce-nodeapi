@@ -20,6 +20,7 @@ function ensureAuthenticated(req, res, next) {
         return next(err)
       } else {
         //bind on request
+        console.log("========>nexy======>")
         next()
       }
     })
