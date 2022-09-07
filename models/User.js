@@ -7,7 +7,8 @@ var userSchema = mongoose.Schema({
         index: true
     },
     password: {
-        type: String
+        type: String,
+        select: false
     },
     fullname: {
         type: String
@@ -42,7 +43,7 @@ module.exports.getUserByEmail = function(email, callback) {
 
 
 module.exports.getUserById = function(id, callback) {
-    User.findById(id, callback);
+    User.findOne(id, callback);
 }
 module.exports.comparePassword = function(givenPassword, hash, callback) {
     bcrypt.compare(givenPassword, hash, function(err, isMatch) {
