@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken')
 const config = require('../configs/jwt-config')
 const { ensureAuthenticated } = require('../modules/ensureAuthenticated')
 const User = require('../models/User');
+const { profileUpload } = require('../helper/profileUpload')
 const Cart = require('../models/Cart');
 const CartClass = require('../modules/Cart')
 const Product = require('../models/Product')
@@ -226,12 +227,12 @@ router.put('/:userId/cart', ensureAuthenticated, function (req, res, next) {
   let requestProduct = req.body
   let { productId, color, size } = requestProduct.product
 
-  Cart.getCartByUserId(userId, function (err, c) {
-    if (err) return next(err)
-    let oldCart = new CartClass(c[0] || {})
-    Product.getProductByID(productId, function (err, p) {
-      if (err) return next(err)
-      let newCart = oldCart.add(p, productId, { color, size })
+        Cart.getCartByUserId(userId, function(err, c) {
+            if (err) return next(err)
+            let oldCart = new CartClass(c[0] || {})
+            Product.getProductByID(productId, function(err, p) {
+                if (err) return next(err)
+                let newCart = oldCart.add(p, productId, { color, size })
 
       //exist cart in databse
       if (c.length > 0) {
@@ -358,7 +359,23 @@ router.delete('/:userId/wishlist/:wishlistId', ensureAuthenticated, async functi
 
 })
 
+router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
+    let { userId } = req.body
+    console.log(req.body)
+    const Profile = req.file.filename
 
 
+    console.log(req.file)
+    User.UpdateProfilePic(userId, Profile, function(err, profiledata) {
+
+        if (err) return next(err)
+        res.status(200).json({
+            status: "success",
+            message: "profile Upload successfully!!",
+        });
+
+
+    })
+})
 
 module.exports = router;
