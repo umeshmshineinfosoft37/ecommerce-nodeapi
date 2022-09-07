@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken')
 const config = require('../configs/jwt-config')
-const {ensureAuthenticated} = require('../modules/ensureAuthenticated')
+const { ensureAuthenticated } = require('../modules/ensureAuthenticated')
 const User = require('../models/User');
 const Cart = require('../models/Cart');
 const CartClass = require('../modules/Cart')
@@ -20,7 +20,7 @@ router.post('/signin', function (req, res, next) {
   req.checkBody('email', 'Email is required').notEmpty();
   req.checkBody('password', 'Password is required').notEmpty();
   req.checkBody('verifyPassword', 'verifyPassword is required').notEmpty();
-  
+
   let missingFieldErrors = req.validationErrors();
   if (missingFieldErrors) {
     let err = new TypedError('signin error', 400, 'missing_field', {
@@ -73,9 +73,8 @@ router.post('/login', function (req, res, next) {
     User.comparePassword(password, user.password, function (err, isMatch) {
       if (err) return next(err)
       if (isMatch) {
-        console.log("user===>",user)
         let token = jwt.sign(
-          { email: email,user_id: user.id,admin:user?.admin ==='true'?true:false },
+          { email: email, user_id: user.id, admin: user?.admin === 'true' ? true : false },
           config.secret,
           { expiresIn: '7d' }
         )
@@ -84,6 +83,7 @@ router.post('/login', function (req, res, next) {
             user_id: user.id,
             user_name: user.fullname,
             token: token,
+            is_admin: user.admin ? true : false,
             expire_in: '7d'
           }
         })
@@ -100,18 +100,18 @@ router.get('/:userId/cart', ensureAuthenticated, function (req, res, next) {
   let userId = req.params.userId
   Cart.getCartByUserId(userId, function (err, cart) {
     if (err) return next(err)
-    if (cart&&cart.length < 1) {
+    if (cart && cart.length < 1) {
       let err = new TypedError('cart error', 404, 'not_found', { message: "create a cart first" })
       return next(err)
     }
-    const temp=[]
-    if (cart&&cart.length > 0) {
-    Object.keys(cart[0].items).forEach(function(key, index) {
-      temp.push(cart[0].items[key])
-    })
-  }
-    const tempRes = JSON.parse(JSON.stringify({cart: cart[0]}));
-    tempRes.cart.items =temp;
+    const temp = []
+    if (cart && cart.length > 0) {
+      Object.keys(cart[0].items).forEach(function (key, index) {
+        temp.push(cart[0].items[key])
+      })
+    }
+    const tempRes = JSON.parse(JSON.stringify({ cart: cart[0] }));
+    tempRes.cart.items = temp;
     return res.json({ ...tempRes })
   })
 })
@@ -123,12 +123,20 @@ router.post('/:userId/cart', ensureAuthenticated, function (req, res, next) {
   Cart.getCartByUserId(userId, function (err, c) {
     if (err) return next(err)
     let oldCart = new CartClass(c[0] || { userId })
-    
+
     // no cart save empty cart to database then return response
     if (c.length < 1 && !productId) {
       return Cart.createCart(oldCart.generateModel(), function (err, resultCart) {
         if (err) return next(err)
-        return res.status(201).json({ cart: resultCart })
+        const temp = []
+        if (result && result?.items) {
+          Object.keys(result.items).forEach(key => {
+            temp.push(result.items[key])
+          })
+        }
+        const tempRes = JSON.parse(JSON.stringify(result));
+        tempRes.items = temp;
+        return res.status(200).json({ ...tempRes })
       })
     }
     Product.findById(productId, function (e, product) {
@@ -138,23 +146,28 @@ router.post('/:userId/cart', ensureAuthenticated, function (req, res, next) {
       }
       if (product) {
         if (decrease) {
-          console.log("product--->IF")
           oldCart.decreaseQty(product.id);
         } else if (increase) {
-          console.log("product--->IF  ----ELSe")
           oldCart.increaseQty(product.id);
         } else {
-        console.log("product--->ELSe")
           oldCart.add(product, product.id);
         }
-        console.log("product--->",product)
         let newCart = oldCart.generateModel()
         Cart.updateCartByUserId(
           userId,
           newCart,
           function (err, result) {
             if (err) return next(err)
-            return res.status(200).json({ cart: result })
+
+            const temp = []
+            if (result && result?.items) {
+              Object.keys(result.items).forEach(key => {
+                temp.push(result.items[key])
+              })
+            }
+            const tempRes = JSON.parse(JSON.stringify(result));
+            tempRes.items = temp;
+            return res.status(200).json({ ...tempRes })
           })
       } else {
         // apply variant
@@ -182,7 +195,15 @@ router.post('/:userId/cart', ensureAuthenticated, function (req, res, next) {
                 newCart,
                 function (err, result) {
                   if (err) return next(err)
-                  res.status(200).json({ cart: result })
+                  const temp = []
+                  if (result && result?.items) {
+                    Object.keys(result.items).forEach(key => {
+                      temp.push(result.items[key])
+                    })
+                  }
+                  const tempRes = JSON.parse(JSON.stringify(result));
+                  tempRes.items = temp;
+                  return res.status(200).json({ ...tempRes })
                 })
             })
           }
@@ -258,83 +279,83 @@ router.delete('/:userId/cart/:cartId', ensureAuthenticated, function (req, res, 
 //GET wishlist
 router.get('/:userId/wishlist', ensureAuthenticated, async function (req, res, next) {
   let userId = req.params.userId
-  try{
-    const wishlistData = await Wishlist.findOne({user_id:userId}).populate("product").lean().exec();
-      if(wishlistData){
-        return res.status(200).json({wishlistData});
-      }else{
-        let err = new TypedError('wishlist error', 404, 'not_found', { message: "create a wishlist first" })
+  try {
+    const wishlistData = await Wishlist.findOne({ user_id: userId }).populate("product").lean().exec();
+    if (wishlistData) {
+      return res.status(200).json({ wishlistData });
+    } else {
+      let err = new TypedError('wishlist error', 404, 'not_found', { message: "create a wishlist first" })
       return next(err)
-      }
- }catch(e){
-  if (e) return next(e)
-}
+    }
+  } catch (e) {
+    if (e) return next(e)
+  }
 })
 
 // POST Wishlist
 router.post('/:userId/wishlist', ensureAuthenticated, async function (req, res, next) {
-  try{
-    const userId= req.params.userId;
-    const productId= req.body.productId;
-    let isRemove=false;
-    isRemove= req.body.isRemove;
+  try {
+    const userId = req.params.userId;
+    const productId = req.body.productId;
+    let isRemove = false;
+    isRemove = req.body.isRemove;
     let wishlist = [];
-    const already_wishlist =  await Wishlist.findOne({user_id:userId})
-    if(already_wishlist && already_wishlist?.user_id.toString() === userId ){
-      if(!isRemove){
-      wishlist = await Wishlist.findOneAndUpdate(
-        { _id: already_wishlist._id}, 
-        {
-          $addToSet:{
-            product: { $each:[productId] },
-          }
-        }
-      )
-      }else{
+    const already_wishlist = await Wishlist.findOne({ user_id: userId })
+    if (already_wishlist && already_wishlist?.user_id.toString() === userId) {
+      if (!isRemove) {
         wishlist = await Wishlist.findOneAndUpdate(
-          { _id: already_wishlist._id}, 
+          { _id: already_wishlist._id },
           {
-            $pull:{
+            $addToSet: {
+              product: { $each: [productId] },
+            }
+          }
+        )
+      } else {
+        wishlist = await Wishlist.findOneAndUpdate(
+          { _id: already_wishlist._id },
+          {
+            $pull: {
               product: productId,
             }
           }
-      )
+        )
       }
-    }else{
+    } else {
       wishlist = await Wishlist.create({
-        product : req.body.productId,
-        user_id : req.params.userId,
-    });
+        product: req.body.productId,
+        user_id: req.params.userId,
+      });
     }
-    if(wishlist){
-      if(already_wishlist){
-         wishlist =  await Wishlist.findOne({_id:already_wishlist?._id})
+    if (wishlist) {
+      if (already_wishlist) {
+        wishlist = await Wishlist.findOne({ _id: already_wishlist?._id })
       }
-      res.status(200).json({wishlist});
-    }else{
+      res.status(200).json({ wishlist });
+    } else {
       let err = new TypedError('cart error', 404, 'not_found', { message: "create a Wishlist first" })
       return next(err)
     }
 
-}catch(e){
-    res.status(500).json({Message : e.message , Status : "Failed"});
+  } catch (e) {
+    res.status(500).json({ Message: e.message, Status: "Failed" });
     next(e)
-}
+  }
 })
 //DELETE Wishlist
 router.delete('/:userId/wishlist/:wishlistId', ensureAuthenticated, async function (req, res, next) {
   try {
-  let wishlistId = req.params.wishlistId;
-  const wishlistData = await Wishlist.deleteOne({_id:wishlistId});
-  if(wishlistData){
-    res.status(200).json({ message: 'Wishlist Successfully deleted ' })
-  }
+    let wishlistId = req.params.wishlistId;
+    const wishlistData = await Wishlist.deleteOne({ _id: wishlistId });
+    if (wishlistData) {
+      res.status(200).json({ message: 'Wishlist Successfully deleted ' })
+    }
 
   } catch (error) {
     return next(error)
   }
-  
-  
+
+
 })
 
 
