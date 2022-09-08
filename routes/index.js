@@ -4,6 +4,7 @@ const { ensureAuthenticated, ensureAdminAuthenticated } = require('../modules/en
 const Product = require('../models/Product');
 const Variant = require('../models/Variant')
 const Department = require('../models/Department')
+const { productUpload } = require('../helper/profileUpload')
 const Category = require('../models/Category')
 const TypedError = require('../modules/ErrorHandler')
 const Cart = require('../models/Cart');
@@ -50,18 +51,7 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
         }
 
         const saveImg = saveImage(req.body.imagePath);
-        const { product_Id } = req.body.product_Id
-        const ProductData = req.body.productData
-        if (req.body.product_Id) {
 
-            Product.UpdateProduct(product_Id, ProductData, (err, ProductData) => {
-                if (err) return next(err)
-                res.status(200).json({
-                    status: "success",
-                    message: "product update successfully!!",
-                });
-            })
-        }
         const productData = new Product({
             ...req.body,
             imagePath: saveImg,
@@ -79,6 +69,40 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
         next(error.message)
     }
 })
+
+
+
+
+router.post('/:product_Id/products', ensureAdminAuthenticated, async function(req, res, next) {
+    const { product_Id } = req.params.product_Id
+    const ProductData = req.body.productData
+
+    Product.UpdateProduct(({ _id: product_Id }), ProductData, (err, ProductData) => {
+        if (err) return next(err)
+        console.log(ProductData)
+        res.status(200).json({
+            status: "success",
+            message: "product update successfully!!",
+        });
+    })
+
+})
+router.post('/productImg', ensureAuthenticated, async(req, res, next) => {
+    let { product_Id } = req.body
+    const ImagePath = req.file.filename
+    User.UpdateProductPic(product_Id, ImagePath, function(err, productdata) {
+
+        if (err) return next(err)
+        console.log(productdata)
+        res.status(200).json({
+            status: "success",
+            message: "product Upload successfully!!",
+        });
+
+
+    })
+})
+
 
 //GET /products/:id
 router.get('/products/:id', function(req, res, next) {
