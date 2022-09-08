@@ -56,7 +56,6 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
 
             Product.UpdateProduct(product_Id, ProductData, (err, ProductData) => {
                 if (err) return next(err)
-                console.log(ProductData)
                 res.status(200).json({
                     status: "success",
                     message: "product update successfully!!",
@@ -68,9 +67,7 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
             imagePath: saveImg,
             date: new Date()
         })
-        console.log("productData===>", productData)
         productData.save((err, pdata) => {
-            console.log("err,pdata---->", err, pdata)
             if (pdata) {
                 return res.status(200).json({ data: pdata })
             }
@@ -262,10 +259,8 @@ router.get('/checkout/:cartId', ensureAuthenticated, function(req, res, next) {
         paypal.configure(paypal_config);
         paypal.payment.create(create_payment_json, function(error, payment) {
             if (error) {
-                console.log(JSON.stringify(error));
                 return next(error)
             } else {
-                console.log(payment);
                 for (const link of payment.links) {
                     if (link.rel === 'approval_url') {
                         res.json(link.href)

@@ -71,5 +71,5 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
 
 module.exports.UpdateProfile = function(userId, ProfileData, callback) {
     // var query = { _id: userId }
-    User.findByIdAndUpdate(userId, { $set: {...ProfileData } }, callback)
+    User.findByIdAndUpdate(userId, { $set: {...ProfileData } },{"password":0, "__v": 0,"updatedAt":0}, callback)
 }
