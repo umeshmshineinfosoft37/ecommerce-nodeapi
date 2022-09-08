@@ -61,6 +61,7 @@ router.post('/signin', function(req, res, next) {
 //POST /login
 router.post('/login', function(req, res, next) {
     const { email, password } = req.body || {}
+    
     if (!email || !password) {
         let err = new TypedError('login error', 400, 'missing_field', { message: "missing username or password" })
         return next(err)
@@ -293,6 +294,14 @@ router.get('/:userId/wishlist', ensureAuthenticated, async function(req, res, ne
 // POST Wishlist
 router.post('/:userId/wishlist', ensureAuthenticated, async function(req, res, next) {
         try {
+          req.checkBody('productId', 'productId is required').notEmpty();
+          let invalidFieldErrors = req.validationErrors()
+          if (invalidFieldErrors) {
+              let err = new TypedError('Wishlist error', 400, 'invalid_field', {
+                  errors: invalidFieldErrors,
+              })
+              return next(err)
+          }
             const userId = req.params.userId;
             const productId = req.body.productId;
             let isRemove = false;
@@ -352,11 +361,7 @@ router.delete('/:userId/wishlist/:wishlistId', ensureAuthenticated, async functi
 
 router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
     let { userId } = req.body
-    console.log(req.body)
     const Profile = req.file.filename
-
-
-    console.log(req.file)
     User.UpdateProfilePic(userId, Profile, function(err, profiledata) {
 
         if (err) return next(err)
@@ -372,9 +377,9 @@ router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, as
 router.get('/:userId', ensureAuthenticated, async(req, res, next) => {
     let { userId } = req.params
     try {
-        User.getUserById(({ _id: userId }), (err, profiledata) => {
-            console.log(profiledata)
+        User.getUserById({ _id: userId }, (err, profiledata) => {
             if (profiledata) {
+
                 return res.status(200).json({ profiledata });
             } else {
                 let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })

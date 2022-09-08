@@ -43,13 +43,13 @@ module.exports.getUserByEmail = function(email, callback) {
 
 
 module.exports.getUserById = function(id, callback) {
-    User.findOne(id, callback);
+    User.findOne(id,{"password":0, "__v": 0,"updatedAt":0}, callback);
 }
 module.exports.comparePassword = function(givenPassword, hash, callback) {
     bcrypt.compare(givenPassword, hash, function(err, isMatch) {
         if (err) throw err;
         callback(null, isMatch);
-    });
+    });                    
 }
 
 

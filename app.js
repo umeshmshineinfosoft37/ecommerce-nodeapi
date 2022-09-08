@@ -53,6 +53,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 //routers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+// Cart And Wishlist 
+// app.use('/users/:userId', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
