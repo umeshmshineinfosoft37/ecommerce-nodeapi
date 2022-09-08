@@ -8,7 +8,7 @@ var userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        select: false
+        required: true,
     },
     fullname: {
         type: String
@@ -16,14 +16,17 @@ var userSchema = mongoose.Schema({
     admin: {
         type: String
     },
-    cart: {
-        type: Object
-    },
+
     Profile: {
         type: String,
-        required: "Profile Picture is required!"
-    }
+        required: "Profile Picture is required!",
+        select: false
+    },
+    createdAt: { type: Date, required: true, default: Date.now },
+    updatedAt: { type: Date, required: true, default: Date.now }
 });
+
+userSchema.set('timestamps', true)
 
 var User = module.exports = mongoose.model('User', userSchema);
 
@@ -63,4 +66,10 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     var query = { _id: userId };
     // User.findById(query, (err, user) => console.log("user------>", user))
     User.findOneAndUpdate({...query }, { $set: { Profile: Profile } }, callback)
+}
+
+
+module.exports.UpdateProfile = function(userId, ProfileData, callback) {
+    // var query = { _id: userId }
+    User.findByIdAndUpdate(userId, { $set: {...ProfileData } }, callback)
 }
