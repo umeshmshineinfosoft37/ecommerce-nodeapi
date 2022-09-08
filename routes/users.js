@@ -390,4 +390,32 @@ router.get('/:userId', ensureAuthenticated, async(req, res, next) => {
         if (e) return next(e)
     }
 })
+
+router.post('/:userId/userprofile', ensureAuthenticated, async(req, res, next) => {
+    let userId = req.params.userId
+    let ProfileData = {
+        fullname,
+        email,
+
+    } = req.body;
+
+    try {
+        User.UpdateProfile(
+            ({ _id: userId }),
+            ProfileData,
+            function(err, ProfileData) {
+                if (err) return next(err)
+                if (ProfileData) {
+                    res.status(200).json({ "message": "Profile is Updated!" })
+                    console.log(ProfileData)
+                } else {
+                    let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })
+                    return next(err)
+                }
+            })
+
+    } catch (e) {
+        if (e) return next(e)
+    }
+})
 module.exports = router;
