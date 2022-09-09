@@ -20,7 +20,7 @@ var userSchema = mongoose.Schema({
     Profile: {
         type: String,
         required: "Profile Picture is required!",
-        select: false
+        // select: false
     },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now }
@@ -46,13 +46,13 @@ module.exports.getUserByEmail = function(email, callback) {
 
 
 module.exports.getUserById = function(id, callback) {
-    User.findOne(id,{"password":0, "__v": 0,"updatedAt":0}, callback);
+    User.findOne(id, { "password": 0, "__v": 0, "updatedAt": 0 }, callback);
 }
 module.exports.comparePassword = function(givenPassword, hash, callback) {
     bcrypt.compare(givenPassword, hash, function(err, isMatch) {
         if (err) throw err;
         callback(null, isMatch);
-    });                    
+    });
 }
 
 

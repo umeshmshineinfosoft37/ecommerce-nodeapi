@@ -4,7 +4,7 @@ const { ensureAuthenticated, ensureAdminAuthenticated } = require('../modules/en
 const Product = require('../models/Product');
 const Variant = require('../models/Variant')
 const Department = require('../models/Department')
-const { productUpload } = require('../helper/profileUpload')
+const { ImageUpload } = require('../helper/ImageUpload')
 const Category = require('../models/Category')
 const TypedError = require('../modules/ErrorHandler')
 const Cart = require('../models/Cart');
@@ -89,13 +89,18 @@ router.post('/:product_Id/products', ensureAdminAuthenticated, async function(re
     })
 
 })
+
 router.post('/productImg', ensureAuthenticated, async(req, res, next) => {
-    let { product_Id } = req.body
-    const ImagePath = req.file.filename
-    User.UpdateProductPic(product_Id, ImagePath, function(err, productdata) {
+
+    let { productId } = req.body
+    const imagePath = req.files.map(file => file.filename)
+
+
+
+    Product.UpdateProductPic(productId, imagePath, function(err, productdata) {
 
         if (err) return next(err)
-        console.log(productdata)
+            // console.log(productdata)
         res.status(200).json({
             status: "success",
             message: "product Upload successfully!!",

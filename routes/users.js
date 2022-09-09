@@ -61,7 +61,7 @@ router.post('/signin', function(req, res, next) {
 //POST /login
 router.post('/login', function(req, res, next) {
     const { email, password } = req.body || {}
-    
+
     if (!email || !password) {
         let err = new TypedError('login error', 400, 'missing_field', { message: "missing username or password" })
         return next(err)
@@ -294,14 +294,14 @@ router.get('/:userId/wishlist', ensureAuthenticated, async function(req, res, ne
 // POST Wishlist
 router.post('/:userId/wishlist', ensureAuthenticated, async function(req, res, next) {
         try {
-          req.checkBody('productId', 'productId is required').notEmpty();
-          let invalidFieldErrors = req.validationErrors()
-          if (invalidFieldErrors) {
-              let err = new TypedError('Wishlist error', 400, 'invalid_field', {
-                  errors: invalidFieldErrors,
-              })
-              return next(err)
-          }
+            req.checkBody('productId', 'productId is required').notEmpty();
+            let invalidFieldErrors = req.validationErrors()
+            if (invalidFieldErrors) {
+                let err = new TypedError('Wishlist error', 400, 'invalid_field', {
+                    errors: invalidFieldErrors,
+                })
+                return next(err)
+            }
             const userId = req.params.userId;
             const productId = req.body.productId;
             let isRemove = false;

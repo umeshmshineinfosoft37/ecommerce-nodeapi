@@ -2,8 +2,7 @@ var mongoose = require('mongoose');
 
 var productSchema = mongoose.Schema({
     imagePath: {
-        type: String,
-        required: "Image Path is required!"
+        type: Array
     },
     title: {
         type: String
@@ -68,12 +67,13 @@ module.exports.filterProductByCategory = function(category, callback) {
     let regexp = new RegExp(`${category}`, 'i')
     var query = { category: { $regex: regexp } };
     Product.find(query, callback);
+}
 
-    module.exports.UpdateProductPic = function(userId, ImagePath, callback) {
-        var query = { _id: userId };
-        // User.findById(query, (err, user) => console.log("user------>", user))
-        User.findOneAndUpdate({...query }, { $set: { ImagePath: ImagePath } }, callback)
-    }
+module.exports.UpdateProductPic = function(productId, imagePath, callback) {
+    var query = { _id: productId };
+    // User.findById(query, (err, user) => console.log("user------>", user))
+    Product.findOneAndUpdate({...query }, { $set: { imagePath: imagePath } }, callback)
+
 }
 
 module.exports.filterProductByTitle = function(title, callback) {
