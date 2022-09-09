@@ -92,9 +92,9 @@ router.post('/login', function(req, res, next) {
 //Upload User Profile Pic
 router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
     let { userId } = req.body
+  .log("")
     const Profile = req.file.filename
     User.UpdateProfilePic(userId, Profile, function(err, profiledata) {
-
         if (err) return next(err)
         res.status(200).json({
             status: "success",

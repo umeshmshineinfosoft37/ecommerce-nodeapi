@@ -32,7 +32,7 @@ router.get('/products', ensureAuthenticated, function(req, res, next) {
 // Add Product
 router.post('/products', ensureAdminAuthenticated, async function(req, res, next) {
     try {
-        req.checkBody('imagePath', 'Product Image is required').notEmpty();
+        // req.checkBody('imagePath', 'Product Image is required').notEmpty();
         req.checkBody('title', 'Product Title is required').notEmpty();
         req.checkBody('description', 'Product Description is required').notEmpty();
         req.checkBody('price', 'Product Price is required').notEmpty();
@@ -49,7 +49,19 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
             })
             return next(err)
         }
-
+        if(req.body&&req.body._id){
+          const updateData={
+            ...req.body,
+            updatedAt:new Date().getTime()
+          }
+          delete updateData["_id"];
+          Product.UpdateProduct({ _id: req.body._id }, updateData, (err, ProductData) => {
+            if (err) return next(err)
+            Product.getProductsId({ _id: ProductData._id },(err,getData)=>{
+              res.status(200).json({data:getData});
+            })
+        })
+        }else{
         const saveImg = saveImage(req.body.imagePath);
 
         const productData = new Product({
@@ -64,6 +76,7 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
             if (err) return next(err)
 
         });
+      }
 
     } catch (error) {
         next(error.message)
@@ -73,13 +86,12 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
 
 
 
-router.post('/:product_Id/products', ensureAdminAuthenticated, async function(req, res, next) {
-    const { product_Id } = req.params.product_Id
+router.post('/:productId/products', ensureAdminAuthenticated, async function(req, res, next) {
+    const { productId } = req.params.productId
     const ProductData = req.body.productData
 
-    Product.UpdateProduct(({ _id: product_Id }), ProductData, (err, ProductData) => {
+    Product.UpdateProduct(({ _id: productId }), ProductData, (err, ProductData) => {
         if (err) return next(err)
-        console.log(ProductData)
         res.status(200).json({
             status: "success",
             message: "product update successfully!!",
@@ -93,7 +105,6 @@ router.post('/productImg', ensureAuthenticated, async(req, res, next) => {
     User.UpdateProductPic(product_Id, ImagePath, function(err, productdata) {
 
         if (err) return next(err)
-        console.log(productdata)
         res.status(200).json({
             status: "success",
             message: "product Upload successfully!!",
@@ -301,7 +312,6 @@ router.get('/payment/success', ensureAuthenticated, function(req, res, next) {
     var payerId = { payer_id: req.query.PayerID };
     paypal.payment.execute(paymentId, payerId, function(error, payment) {
         if (error) {
-            console.error(JSON.stringify(error));
             return next(error)
         } else {
             if (payment.state == 'approved') {
