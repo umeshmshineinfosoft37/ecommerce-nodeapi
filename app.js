@@ -10,6 +10,8 @@ var expressValidator  = require('express-validator');//req.checkbody()
 const mongoConfig = require('./configs/mongo-config')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var cartWishlistRouter = require('./routes/cartWishlist');
+
 
 mongoose.connect(mongoConfig, { useNewUrlParser: true, useCreateIndex: true, },function(error){
   if(error) throw error
@@ -54,7 +56,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 // Cart And Wishlist 
-// app.use('/users/:userId', usersRouter);
+app.use('/users', cartWishlistRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

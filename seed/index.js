@@ -278,7 +278,6 @@ var newUser = new User({
 });
 User.createUser(newUser, function (err, user) {
   if (err) throw err;
-  console.log(user);
 });
 
 function exit() {

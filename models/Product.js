@@ -32,15 +32,19 @@ var productSchema = mongoose.Schema({
         type: Number
     },
     createdAt: { type: Date, required: true, default: Date.now },
+    updatedAt: { type: Date, required: true, default: Date.now },
 
 });
 
 var Product = module.exports = mongoose.model('Product', productSchema);
 
 module.exports.getAllProducts = function(query, sort, callback) {
-    Product.find(query, null, sort, callback)
+    Product.find(query, { "__v": 0, "updatedAt": 0, "createdAt": 0 }, sort, callback)
 }
 
+module.exports.getProductsId = function(query, callback) {
+    Product.findById(query, { "__v": 0, "updatedAt": 0, "createdAt": 0 }, callback)
+}
 module.exports.getProductByDepartment = function(query, sort, callback) {
     Product.find(query, null, sort, callback)
 }
@@ -53,8 +57,7 @@ module.exports.getProductByTitle = function(query, sort, callback) {
     Product.find(query, null, sort, callback)
 }
 module.exports.UpdateProduct = function(product_Id, ProductData, callback) {
-    var query = { _id: product_Id };
-    Product.findOneAndUpdate(query, { $set: {...ProductData } }, callback)
+    Product.findOneAndUpdate({...product_Id }, { $set: {...ProductData } }, callback)
 }
 
 module.exports.filterProductByDepartment = function(department, callback) {
