@@ -16,15 +16,24 @@ var userSchema = mongoose.Schema({
     admin: {
         type: String
     },
+    otp: {
+        type: Number
+    },
 
     Profile: {
         type: String,
         required: "Profile Picture is required!",
         // select: false
     },
+    token: {
+        type: String,
+        default: Date.now
+
+    },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now }
 });
+
 
 userSchema.set('timestamps', true)
 
@@ -66,9 +75,17 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     var query = { _id: userId };
     User.findOneAndUpdate({...query }, { $set: { Profile: Profile } }, callback)
 }
+module.exports.updatepassword = function(email, password, callback) {
+    var query = { email: email }
+    User.findOneAndUpdate({...query }, password, callback)
+}
 
+module.exports.createOtp = function(email, callback) {
+    var query = { email: email }
+    User.create({...query }, callback)
+}
 
 module.exports.UpdateProfile = function(userId, ProfileData, callback) {
     // var query = { _id: userId }
-    User.findByIdAndUpdate(userId, { $set: {...ProfileData } },{"password":0, "__v": 0,"updatedAt":0}, callback)
+    User.findByIdAndUpdate(userId, { $set: {...ProfileData } }, { "password": 0, "__v": 0, "updatedAt": 0 }, callback)
 }
