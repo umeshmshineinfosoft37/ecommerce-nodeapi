@@ -55,7 +55,7 @@ router.post('/signin', function(req, res, next) {
 //POST /login
 router.post('/login', function(req, res, next) {
     const { email, password } = req.body || {}
-    
+
     if (!email || !password) {
         let err = new TypedError('login error', 400, 'missing_field', { message: "missing username or password" })
         return next(err)
@@ -91,6 +91,7 @@ router.post('/login', function(req, res, next) {
 
 //Upload User Profile Pic
 router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
+
     if(req.file&&req.file.filename && req.body){
         let { userId } = req.body
         const Profile = req.file.filename
@@ -119,25 +120,39 @@ router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, as
         return next(err)
     }
    
+
+    let { userId } = req.body
+        .log("")
+    const Profile = req.file.filename
+    User.UpdateProfilePic(userId, Profile, function(err, profiledata) {
+        if (err) return next(err)
+        res.status(200).json({
+            status: "success",
+            message: "profile Upload successfully!!",
+        });
+
+
+    })
+
 })
 
 router.get('/:userId', ensureAuthenticated, async(req, res, next) => {
-    let { userId } = req.params
-    try {
-        User.getUserById({ _id: userId }, (err, profiledata) => {
-            if (profiledata) {
+        let { userId } = req.params
+        try {
+            User.getUserById({ _id: userId }, (err, profiledata) => {
+                if (profiledata) {
 
-                return res.status(200).json({ profiledata });
-            } else {
-                let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })
-                return next(err)
-            }
-        })
-    } catch (e) {
-        if (e) return next(e)
-    }
-})
-//Update User
+                    return res.status(200).json({ profiledata });
+                } else {
+                    let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })
+                    return next(err)
+                }
+            })
+        } catch (e) {
+            if (e) return next(e)
+        }
+    })
+    //Update User
 router.post('/:userId/userprofile', ensureAuthenticated, async(req, res, next) => {
     let userId = req.params.userId
     req.checkBody('fullname', 'fullname is required').notEmpty();
@@ -163,7 +178,7 @@ router.post('/:userId/userprofile', ensureAuthenticated, async(req, res, next) =
             function(err, ProfileData) {
                 if (err) return next(err)
                 if (ProfileData) {
-                    res.status(200).json({ data:{...ProfileData} })
+                    res.status(200).json({ data: {...ProfileData } })
                 } else {
                     let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })
                     return next(err)

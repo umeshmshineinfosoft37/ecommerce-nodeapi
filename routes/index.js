@@ -4,7 +4,7 @@ const { ensureAuthenticated, ensureAdminAuthenticated } = require('../modules/en
 const Product = require('../models/Product');
 const Variant = require('../models/Variant')
 const Department = require('../models/Department')
-const { productUpload } = require('../helper/profileUpload')
+const { ImageUpload } = require('../helper/ImageUpload')
 const Category = require('../models/Category')
 const TypedError = require('../modules/ErrorHandler')
 const Cart = require('../models/Cart');
@@ -49,34 +49,34 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
             })
             return next(err)
         }
-        if(req.body&&req.body._id){
-          const updateData={
-            ...req.body,
-            updatedAt:new Date().getTime()
-          }
-          delete updateData["_id"];
-          Product.UpdateProduct({ _id: req.body._id }, updateData, (err, ProductData) => {
-            if (err) return next(err)
-            Product.getProductsId({ _id: ProductData._id },(err,getData)=>{
-              res.status(200).json({data:getData});
-            })
-        })
-        }else{
-        const saveImg = saveImage(req.body.imagePath);
-
-        const productData = new Product({
-            ...req.body,
-            imagePath: saveImg,
-            date: new Date()
-        })
-        productData.save((err, pdata) => {
-            if (pdata) {
-                return res.status(200).json({ data: pdata })
+        if (req.body && req.body._id) {
+            const updateData = {
+                ...req.body,
+                updatedAt: new Date().getTime()
             }
-            if (err) return next(err)
+            delete updateData["_id"];
+            Product.UpdateProduct({ _id: req.body._id }, updateData, (err, ProductData) => {
+                if (err) return next(err)
+                Product.getProductsId({ _id: ProductData._id }, (err, getData) => {
+                    res.status(200).json({ data: getData });
+                })
+            })
+        } else {
+            const saveImg = saveImage(req.body.imagePath);
 
-        });
-      }
+            const productData = new Product({
+                ...req.body,
+                imagePath: saveImg,
+                date: new Date()
+            })
+            productData.save((err, pdata) => {
+                if (pdata) {
+                    return res.status(200).json({ data: pdata })
+                }
+                if (err) return next(err)
+
+            });
+        }
 
     } catch (error) {
         next(error.message)
@@ -99,10 +99,31 @@ router.post('/:productId/products', ensureAdminAuthenticated, async function(req
     })
 
 })
-router.post('/productImg', ensureAuthenticated, async(req, res, next) => {
-    let { product_Id } = req.body
-    const ImagePath = req.file.filename
-    User.UpdateProductPic(product_Id, ImagePath, function(err, productdata) {
+router.delete('/:productId', ensureAdminAuthenticated, async function(req, res, next) {
+    const { productId } = req.params.productId
+        // const ProductData = req.body.productData
+
+    Product.DeleteProductById(({ _id: productId }), (err, ProductData) => {
+        if (err) return next(err)
+            // console.log(ProductData);
+        res.status(200).json({
+
+            status: "success",
+            message: "product Delete successfully!!",
+        })
+
+    });
+})
+
+
+router.post('/productImg', ImageUpload, ensureAuthenticated, async(req, res, next) => {
+
+    let { productId } = req.body
+    const imagePath = req.files.map(file => file.filename)
+
+
+
+    Product.UpdateProductPic(productId, imagePath, function(err, productdata) {
 
         if (err) return next(err)
         res.status(200).json({
