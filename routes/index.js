@@ -57,9 +57,7 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
             delete updateData["_id"];
             Product.UpdateProduct({ _id: req.body._id }, updateData, (err, ProductData) => {
                 if (err) return next(err)
-                Product.getProductsId({ _id: ProductData._id }, (err, getData) => {
-                    res.status(200).json({ data: getData });
-                })
+                if(ProductData) res.status(200).json({ data: ProductData });
             })
         } else {
             const saveImg = saveImage(req.body.imagePath);
@@ -83,9 +81,6 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
     }
 })
 
-
-
-
 router.post('/:productId/products', ensureAdminAuthenticated, async function(req, res, next) {
     const { productId } = req.params.productId
     const ProductData = req.body.productData
@@ -95,21 +90,18 @@ router.post('/:productId/products', ensureAdminAuthenticated, async function(req
         res.status(200).json({
             status: "success",
             message: "product update successfully!!",
+            data:ProductData
         });
     })
 
 })
-router.delete('products/:product_Id', ensureAdminAuthenticated, async function(req, res, next) {
+router.delete('/products/:product_Id', ensureAdminAuthenticated, async function(req, res, next) {
     const { product_Id } = req.params
-
-    Product.DeleteProductById(({ _id: product_Id }), (err, ProductData) => {
-        console.log(product_Id)
+    Product.DeleteProductById({ _id: product_Id }, (err, ProductData) => {
         if (err) return next(err)
         res.status(200).json({
-
             status: "success",
             message: "product Delete successfully!!",
-            deleted : Product
         })
 
     });
@@ -123,15 +115,13 @@ router.post('/productImg', ImageUpload, ensureAuthenticated, async(req, res, nex
 
 
 
-    Product.UpdateProductPic(productId, imagePath, function(err, productdata) {
-
+    Product.UpdateProductPic(productId, imagePath, function(err, product_data) {
         if (err) return next(err)
         res.status(200).json({
             status: "success",
             message: "product Upload successfully!!",
+            imagePath:product_data.imagePath
         });
-
-
     })
 })
 

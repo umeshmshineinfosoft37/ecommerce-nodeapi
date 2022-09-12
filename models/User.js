@@ -19,8 +19,6 @@ var userSchema = mongoose.Schema({
 
     Profile: {
         type: String,
-        required: "Profile Picture is required!",
-        // select: false
     },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now }
@@ -64,11 +62,11 @@ module.exports.getAllUsers = function(callback) {
 
 module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     var query = { _id: userId };
-    User.findOneAndUpdate({...query }, { $set: { Profile: Profile } }, callback)
+    User.findByIdAndUpdate({ _id: userId }, { $set: { Profile: Profile } }, { new: true }, callback)
 }
 
 
 module.exports.UpdateProfile = function(userId, ProfileData, callback) {
     // var query = { _id: userId }
-    User.findByIdAndUpdate(userId, { $set: {...ProfileData } },{"password":0, "__v": 0,"updatedAt":0}, callback)
+    User.findOneAndUpdate({...userId}, { $set: {...ProfileData } },{"password":0, "__v": 0,"updatedAt":0}, callback)
 }

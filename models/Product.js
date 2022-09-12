@@ -57,7 +57,7 @@ module.exports.getProductByTitle = function(query, sort, callback) {
     Product.find(query, null, sort, callback)
 }
 module.exports.UpdateProduct = function(product_Id, ProductData, callback) {
-    Product.findOneAndUpdate({...product_Id }, { $set: {...ProductData } }, callback)
+    Product.findOneAndUpdate({...product_Id }, { $set: {...ProductData } },{ new: true }, callback)
 }
 
 module.exports.filterProductByDepartment = function(department, callback) {
@@ -81,7 +81,7 @@ module.exports.DeleteProductById = function(product_Id,callback) {
 module.exports.UpdateProductPic = function(productId, imagePath, callback) {
     var query = { _id: productId };
     // User.findById(query, (err, user) => console.log("user------>", user))
-    Product.findOneAndUpdate({...query }, { $set: { imagePath: imagePath } }, callback)
+    Product.findOneAndUpdate({...query }, { $set: { imagePath: imagePath } },{ new: true }, callback)
 
 }
 

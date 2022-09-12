@@ -143,7 +143,7 @@ router.post('/:userId/userprofile', ensureAuthenticated, async(req, res, next) =
     req.checkBody('fullname', 'fullname is required').notEmpty();
     req.checkBody('email', 'email is required').notEmpty();
     req.checkBody('email', 'Email is not valid').isEmail();
-    let invalidFieldErrors = req.validationErrors()
+    let invalidFieldErrors = req.validationErrors();
     if (invalidFieldErrors) {
         let err = new TypedError('signin error', 400, 'invalid_field', {
             errors: invalidFieldErrors,
@@ -158,12 +158,14 @@ router.post('/:userId/userprofile', ensureAuthenticated, async(req, res, next) =
 
     try {
         User.UpdateProfile(
-            ({ _id: userId }),
+            { _id: userId },
             ProfileData,
             function(err, ProfileData) {
                 if (err) return next(err)
                 if (ProfileData) {
-                    res.status(200).json({ data: {...ProfileData } })
+                    User.getUserById({ _id: userId},(err,upData)=>{
+                        res.status(200).json({ data: upData  })
+                    })
                 } else {
                     let err = new TypedError('profile error', 404, 'not_found', { message: "create a profile first" })
                     return next(err)
