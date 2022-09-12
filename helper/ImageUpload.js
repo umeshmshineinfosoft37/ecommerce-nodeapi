@@ -19,7 +19,7 @@ const multerFilter = (req, file, cb) => {
         cb(new Error("Not a jpg/jpeg/png File!!"), false);
     }
 };
-const ImageUpload = multer({ storage: multerStorage, fileFilter: multerFilter }).array('images', 10);
+const ImageUpload = multer({ storage: multerStorage, fileFilter: multerFilter, limits: { fileSize: 100000 } }, ).array('images', 10);
 
 module.exports = { ImageUpload };
 

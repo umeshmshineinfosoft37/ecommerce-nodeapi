@@ -121,7 +121,7 @@ router.post('/resetPassword', ensureAuthenticated, async(req, res, next) => {
                 console.log("errr===>", err)
                 if (err) throw err
                 if (upData) {
-                    res.status(200).json({ status: "Success", message: "Password Reset Sucessfuly" });
+                    res.status(200).json({ status: "Success", message: "Password Reset Successfuly!" });
                 }
             });
 

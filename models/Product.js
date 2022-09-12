@@ -43,6 +43,8 @@ module.exports.getAllProducts = function(query, sort, callback) {
     Product.find(query, { "__v": 0, "updatedAt": 0, "createdAt": 0 }, sort, callback)
 }
 
+
+
 module.exports.getProductsId = function(query, callback) {
     Product.findById(query, { "__v": 0, "updatedAt": 0, "createdAt": 0 }, callback)
 }
