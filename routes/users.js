@@ -91,12 +91,10 @@ router.post('/login', function(req, res, next) {
 
 //Upload User Profile Pic
 router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
-
     if(req.file&&req.file.filename && req.body){
         let { userId } = req.body
         const Profile = req.file.filename
         req.checkBody('userId', 'fullname is required').notEmpty();
-        // req.checkBody('profile', 'profile is required').notEmpty();
     
         let invalidFieldErrors = req.validationErrors()
         if (invalidFieldErrors) {
@@ -110,29 +108,16 @@ router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, as
             res.status(200).json({
                 status: "success",
                 message: "profile Upload successfully!!",
+                image:profiledata.Profile
             });
     
         })
     }else{
         let err = new TypedError('Profile error', 400, 'invalid_field', {
-           
+             message: "Image Not Upload" 
         })
         return next(err)
     }
-   
-
-    let { userId } = req.body
-        .log("")
-    const Profile = req.file.filename
-    User.UpdateProfilePic(userId, Profile, function(err, profiledata) {
-        if (err) return next(err)
-        res.status(200).json({
-            status: "success",
-            message: "profile Upload successfully!!",
-        });
-
-
-    })
 
 })
 
