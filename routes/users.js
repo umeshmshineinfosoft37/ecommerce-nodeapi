@@ -95,60 +95,60 @@ router.post('/login', Is_User_Exist, function(req, res, next) {
     })
 })
 
-router.post('/forgotPasswordResetPassword', Send_Mail, OTP_GENERATE, function(req, res, next) {
+// router.post('/forgotPassword', Send_Mail, OTP_GENERATE, function(req, res, next) {
 
 
 
 
-    //Checking User Existence
-    if (!req.is_user_exist) {
-        const error = new Error('Invalid Email ID');
-        error.statusCode = 400;
-        throw error;
-    }
+//     //Checking User Existence
+//     if (!req.is_user_exist) {
+//         const error = new Error('Invalid Email ID');
+//         error.statusCode = 400;
+//         throw error;
+//     }
 
-    //const token = randomStringGenerator(50);
-    const expiryDateTime = new Date();
-    expiryDateTime.setMinutes(expiryDateTime.getMinutes() + 10);
-
-
-
-
-    User.createOtp({
-
-            email: req.body.email,
+//     //const token = randomStringGenerator(50);
+//     const expiryDateTime = new Date();
+//     expiryDateTime.setMinutes(expiryDateTime.getMinutes() + 10);
 
 
 
-        })
-        .then(user => {
-            html = `<html>
-    
-                    <body style="margin-left: 10px;">
-                        <b>Hello,</b><br/><br/>
-                        <p>
-                            Please click here to reset your password: ${OTP_GENERATE.Otp}
-                            If you have not requested to reset your password, please destroy this email.
-                        </p>
-                        <p>Note: Please do not share your password with anyone, Ecommerce will never ask you for your password.</p>
-                        <p>Kind Regards,<br />
-                              Ecommerce </p>
-                    </body>
-        
-                </html>`,
-                Send_Mail(req.body.email, 'akashbhanderi98@gmail.com', "Reset Password Otp", html);
-        })
-    req.emailSubject = ` Otp `;
-    next();
-    return res.json({
-        status: true,
-        message: " Otp sent to your registered email"
-    })
-});
-(err) => {
-    console.log(err)
-    res.json[{ "message": "error occur while otp send!" }]
-} //End of Reset_Link_Controller 
+
+//     User.createOtp({
+
+//             email: req.body.email,
+
+
+
+//         })
+//         .then(user => {
+//             html = `<html>
+
+//                     <body style="margin-left: 10px;">
+//                         <b>Hello,</b><br/><br/>
+//                         <p>
+//                             Please click here to reset your password: ${OTP_GENERATE.Otp}
+//                             If you have not requested to reset your password, please destroy this email.
+//                         </p>
+//                         <p>Note: Please do not share your password with anyone, Ecommerce will never ask you for your password.</p>
+//                         <p>Kind Regards,<br />
+//                               Ecommerce </p>
+//                     </body>
+
+//                 </html>`,
+//                 Send_Mail(req.body.email, 'akashbhanderi98@gmail.com', "Reset Password Otp", html);
+//         })
+//     req.emailSubject = ` Otp `;
+//     next();
+//     return res.json({
+//         status: true,
+//         message: " Otp sent to your registered email"
+//     })
+// });
+// (err) => {
+//     console.log(err)
+//     res.json[{ "message": "error occur while otp send!" }]
+// } //End of Reset_Link_Controller 
 
 
 
@@ -156,7 +156,11 @@ router.post('/forgotPasswordResetPassword', Send_Mail, OTP_GENERATE, function(re
 
 router.post('/resetPassword', async(req, res) => {
     const email = req.body.email;
-    const password = req.body.password;
+    const { oldPassword } = req.body.password;
+    const newpassword = req.body.newpassword
+    req.checkBody('oldPassword', 'oldPassword is required').notEmpty();
+    req.checkBody('email', 'email is required').notEmpty();
+
 
 
 
@@ -166,10 +170,11 @@ router.post('/resetPassword', async(req, res) => {
     //         return res.status(422).json({ errors: validationError.array() });
     //     }
     try {
-        //Generating hash password
-        const password = await bcrypt.hash(password, 12)
 
-        User.updatepassword(email, password, function(err, res) {
+        //Generating hash password
+        const newpassword = await bcrypt.hash(newpassword, 12)
+
+        User.updatepassword(email, oldPassword, newpassword, function(err, res) {
             if (err) throw err
 
             return res.status(201).json({ status: "Success", message: "Password reseted" });

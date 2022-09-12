@@ -10,6 +10,9 @@ var userSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    newpassword: {
+        type: String,
+    },
     fullname: {
         type: String
     },
@@ -75,9 +78,13 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     var query = { _id: userId };
     User.findOneAndUpdate({...query }, { $set: { Profile: Profile } }, callback)
 }
-module.exports.updatepassword = function(email, password, callback) {
+module.exports.updatepassword = function(email, password, newpassword, callback) {
     var query = { email: email }
-    User.findOneAndUpdate({...query }, password, callback)
+        // var query = { oldPassword: password }
+    User.findOneAndUpdate({...query }, {
+            $set: { password }
+        },
+        callback)
 }
 
 module.exports.createOtp = function(email, callback) {

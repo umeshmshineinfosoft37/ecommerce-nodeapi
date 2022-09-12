@@ -103,13 +103,15 @@ router.delete('/:productId', ensureAdminAuthenticated, async function(req, res, 
     const { productId } = req.params.productId
         // const ProductData = req.body.productData
 
-    Product.DeleteProductById(({ _id: productId }), (err, ProductData) => {
+    Product.DeleteProduct(({ _id: productId }), (err, ProductData) => {
+        console.log(productId)
         if (err) return next(err)
             // console.log(ProductData);
         res.status(200).json({
 
             status: "success",
             message: "product Delete successfully!!",
+            deleted: Product
         })
 
     });
