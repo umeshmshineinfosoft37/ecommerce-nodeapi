@@ -86,6 +86,7 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
 
 
 
+
 router.post('/:productId/products', ensureAdminAuthenticated, async function(req, res, next) {
     const { productId } = req.params.productId
     const ProductData = req.body.productData

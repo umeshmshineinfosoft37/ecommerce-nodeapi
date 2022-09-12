@@ -9,10 +9,12 @@ var userSchema = mongoose.Schema({
     password: {
         type: String,
         required: true,
+        index: {
+            unique: true,
+            dropDups: true
+        }
     },
-    newpassword: {
-        type: String,
-    },
+
     fullname: {
         type: String
     },
@@ -78,13 +80,22 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     var query = { _id: userId };
     User.findOneAndUpdate({...query }, { $set: { Profile: Profile } }, callback)
 }
-module.exports.updatepassword = function(email, password, newpassword, callback) {
+
+
+
+
+module.exports.updatepassword = function(email, password, callback) {
     var query = { email: email }
-        // var query = { oldPassword: password }
-    User.findOneAndUpdate({...query }, {
-            $set: { password }
-        },
-        callback)
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(password, salt, function(err, hash) {
+
+            User.updateOne({...query }, {
+                    $set: { password: hash }
+                }, { new: true },
+                callback)
+        });
+    });
+
 }
 
 module.exports.createOtp = function(email, callback) {
