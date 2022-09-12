@@ -9,16 +9,29 @@ var userSchema = mongoose.Schema({
     password: {
         type: String,
         required: true,
+        index: {
+            unique: true,
+            dropDups: true
+        }
     },
+
     fullname: {
         type: String
     },
     admin: {
         type: String
     },
+    otp: {
+        type: Number
+    },
 
     Profile: {
         type: String,
+    },
+    token: {
+        type: String,
+        default: Date.now
+
     },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now }
@@ -65,6 +78,31 @@ module.exports.UpdateProfilePic = function(userId, Profile, callback) {
     User.findByIdAndUpdate({ _id: userId }, { $set: { Profile: Profile } }, { new: true }, callback)
 }
 
+module.exports.createOtp = function(email, callback) {
+    var query = { email: email }
+    User.create({...query }, callback)
+}
+
+
+
+module.exports.updatepassword = function(email, password, callback) {
+    var query = { email: email }
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(password, salt, function(err, hash) {
+
+            User.updateOne({...query }, {
+                    $set: { password: hash }
+                }, { new: true },
+                callback)
+        });
+    });
+
+}
+
+module.exports.createOtp = function(email, callback) {
+    var query = { email: email }
+    User.create({...query }, callback)
+}
 
 module.exports.UpdateProfile = function(userId, ProfileData, callback) {
     // var query = { _id: userId }

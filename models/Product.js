@@ -72,10 +72,10 @@ module.exports.filterProductByCategory = function(category, callback) {
     Product.find(query, callback);
 }
 
-module.exports.DeleteProductById = function(product_Id,callback) {
-   
+module.exports.DeleteProductById = function(productId, callback) {
+
     // User.findById(query, (err, user) => console.log("user------>", user))
-    Product.findOneAndDelete({...product_Id }, callback)
+    Product.findOneAndDelete({...productId }, callback)
 
 }
 module.exports.UpdateProductPic = function(productId, imagePath, callback) {

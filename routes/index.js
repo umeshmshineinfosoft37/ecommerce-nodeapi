@@ -60,26 +60,62 @@ router.post('/products', ensureAdminAuthenticated, async function(req, res, next
                 if(ProductData) res.status(200).json({ data: ProductData });
             })
         } else {
-            const saveImg = saveImage(req.body.imagePath);
-
-            const productData = new Product({
-                ...req.body,
-                imagePath: saveImg,
-                date: new Date()
-            })
-            productData.save((err, pdata) => {
-                if (pdata) {
-                    return res.status(200).json({ data: pdata })
-                }
-                if (err) return next(err)
-
-            });
+            res.status(400).json({ "message": "error!!!!" })
         }
-
     } catch (error) {
         next(error.message)
     }
 })
+
+//         } else {
+//             const saveImg = saveImage(req.body.imagePath);
+
+//             const productData = new Product({
+//                 ...req.body,
+//                 imagePath: saveImg,
+//                 date: new Date()
+//             })
+//             productData.save((err, pdata) => {
+//                 if (pdata) {
+//                     return res.status(200).json({ data: pdata })
+//                 }
+//                 if (err) return next(err)
+
+//             });
+//         }
+
+//     } catch (error) {
+//         next(error.message)
+//     }
+// })
+
+router.post('/product', ensureAdminAuthenticated, ImageUpload, async function(req, res, next) {
+    // req.checkBody('imagePath', 'imagePath is required!').notEmpty();
+    req.checkBody('title', 'Product Title is required').notEmpty();
+    req.checkBody('description', 'Product Description is required').notEmpty();
+    let missingFieldErrors = req.validationErrors();
+    if (missingFieldErrors) {
+        let err = new TypedError('Product Add error', 400, 'missing_field', {
+            errors: missingFieldErrors,
+        })
+        return next(err)
+    }
+    const ImagePath = (req.files.map(file => file.filename))
+
+    const data = new Product({
+        ...req.body,
+        imagePath: ImagePath,
+
+    })
+    try {
+        const ProductData = await data.save();
+        console.log(ProductData);
+        res.status(200).json({ "Success": "Done!", "message": "Product is successfully added!" })
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
 
 router.post('/:productId/products', ensureAdminAuthenticated, async function(req, res, next) {
     const { productId } = req.params.productId
@@ -95,13 +131,16 @@ router.post('/:productId/products', ensureAdminAuthenticated, async function(req
     })
 
 })
-router.delete('/products/:product_Id', ensureAdminAuthenticated, async function(req, res, next) {
-    const { product_Id } = req.params
-    Product.DeleteProductById({ _id: product_Id }, (err, ProductData) => {
+router.delete('products/:productId', ensureAdminAuthenticated, async function(req, res, next) {
+    const { productId } = req.params
+
+    Product.DeleteProductById(({ _id: productId }), (err, ProductData) => {
+        console.log(productId)
         if (err) return next(err)
         res.status(200).json({
             status: "success",
             message: "product Delete successfully!!",
+            // deleted: Product
         })
 
     });

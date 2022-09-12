@@ -1,16 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken')
+var bcrypt = require('bcryptjs');
 const config = require('../configs/jwt-config')
 const { ensureAuthenticated } = require('../modules/ensureAuthenticated')
+require('dotenv').config()
+const { Is_User_Exist } = require('../modules/Is_user_exist')
+const { Send_Mail } = require('../helper/send_mail')
+const { store_otp } = require('../helper/store_otp')
+const { OTP_GENERATE } = require('../modules/otp_generated')
 const User = require('../models/User');
 const { profileUpload } = require('../helper/profileUpload')
 const TypedError = require('../modules/ErrorHandler');
 const { json } = require('body-parser');
 
 
+
 //POST /signin
-router.post('/signin', function(req, res, next) {
+router.post('/signin', Is_User_Exist, function(req, res, next) {
     const { fullname, email, password } = req.body
     req.checkBody('fullname', 'fullname is required').notEmpty();
     req.checkBody('email', 'Email is required').notEmpty();
@@ -53,7 +60,7 @@ router.post('/signin', function(req, res, next) {
 });
 
 //POST /login
-router.post('/login', function(req, res, next) {
+router.post('/login', Is_User_Exist, function(req, res, next) {
     const { email, password } = req.body || {}
 
     if (!email || !password) {
@@ -70,7 +77,7 @@ router.post('/login', function(req, res, next) {
             if (err) return next(err)
             if (isMatch) {
                 let token = jwt.sign({ email: email, user_id: user.id, admin: user.admin === 'true' ? true : false },
-                    config.secret, { expiresIn: '7d' }
+                    config.secret, { expiresIn: process.env.JWT_EXPIRY }
                 )
                 res.status(200).json({
                     user_token: {
@@ -78,7 +85,7 @@ router.post('/login', function(req, res, next) {
                         user_name: user.fullname,
                         token: token,
                         is_admin: user.admin ? true : false,
-                        expire_in: '7d'
+
                     }
                 })
             } else {
@@ -89,13 +96,47 @@ router.post('/login', function(req, res, next) {
     })
 })
 
+router.post('/resetPassword', ensureAuthenticated, async(req, res, next) => {
+    const { email, password } = req.body;
+
+    req.checkBody('email', 'email is required').notEmpty();
+    req.checkBody('password', 'password is required').notEmpty();
+    req.checkBody('email', 'Email is not valid').isEmail();
+    let invalidFieldErrors = req.validationErrors()
+    if (invalidFieldErrors) {
+        let err = new TypedError('Change Password error', 400, 'invalid_field', {
+            errors: invalidFieldErrors,
+        })
+        return next(err)
+    }
+    User.getUserByEmail(email, function(err, user) {
+        if (err) return next(err)
+        if (user) {
+            User.updatepassword(user.email, password, function(err, upData) {
+                if (err) throw err
+                if (upData) {
+                    res.status(200).json({ status: "Success", message: "Password Reset Successfuly!" });
+                }
+            });
+
+        } else {
+            let err = new TypedError('login error', 403, 'invalid_field', { message: "Incorrect email or password" })
+            return next(err)
+
+        }
+
+    })
+
+})
+
+
 //Upload User Profile Pic
 router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, async(req, res, next) => {
-    if(req.file&&req.file.filename && req.body){
+    if (req.file && req.file.filename && req.body) {
         let { userId } = req.body
         const Profile = req.file.filename
         req.checkBody('userId', 'fullname is required').notEmpty();
-    
+
         let invalidFieldErrors = req.validationErrors()
         if (invalidFieldErrors) {
             let err = new TypedError('signin error', 400, 'invalid_field', {
@@ -108,13 +149,13 @@ router.post('/profile', profileUpload.single('profile'), ensureAuthenticated, as
             res.status(200).json({
                 status: "success",
                 message: "profile Upload successfully!!",
-                image:profiledata.Profile
+                image: profiledata.Profile
             });
-    
+
         })
-    }else{
+    } else {
         let err = new TypedError('Profile error', 400, 'invalid_field', {
-             message: "Image Not Upload" 
+            message: "Image Not Upload"
         })
         return next(err)
     }
