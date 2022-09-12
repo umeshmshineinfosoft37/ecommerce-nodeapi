@@ -59,7 +59,7 @@ router.post('/:userId/cart', ensureAuthenticated, function(req, res, next) {
                 e.status = 406;
                 return next(e);
             }
-            if (product) {
+            if (product && product.id) {
                 if (decrease) {
                     oldCart.decreaseQty(product.id);
                 } else if (increase) {
