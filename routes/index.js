@@ -99,7 +99,7 @@ router.post('/:productId/products', ensureAdminAuthenticated, async function(req
     })
 
 })
-router.delete('/:product_Id', ensureAdminAuthenticated, async function(req, res, next) {
+router.delete('products/:product_Id', ensureAdminAuthenticated, async function(req, res, next) {
     const { product_Id } = req.params
 
     Product.DeleteProductById(({ _id: product_Id }), (err, ProductData) => {
